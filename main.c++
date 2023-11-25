@@ -1,10 +1,55 @@
 #include <iostream>
 #include "arbolbinario.h"
+#include <fstream>
+#include <vector>
+#include <sstream>
 
 using namespace std;
 
+
+vector<int> leerCSV(const string& nombreArchivo) {
+    vector<int> numeros;
+    ifstream archivo(nombreArchivo);
+    string linea, valor;
+
+    while (getline(archivo, linea)) {
+        stringstream ss(linea);
+        while (getline(ss, valor, ',')) {
+            numeros.push_back(stoi(valor));
+        }
+    }
+
+    return numeros;
+}
+
+int busquedaBinaria(vector<int>& arr, int x) {
+    int l = 0, r = arr.size() - 1;
+    while (l <= r) {
+        int m = l + (r - l) / 2;
+        if (arr[m] == x)
+            return m;
+        if (arr[m] < x)
+            l = m + 1;
+        else
+            r = m - 1;
+    }
+    return -1;
+}
+
 int main() {
     ArbolBinarioBusqueda arbol;
+
+    string nombreArchivo = "numeros.csv";
+    vector<int> numeros = leerCSV(nombreArchivo);
+        // Mostrar el arreglo ordenado
+    for (int num : numeros) {
+        cout << num << " ";
+    }
+    cout << endl;
+
+    // Búsqueda binaria (por ejemplo, buscar el número 5)
+    int resultado = busquedaBinaria(numeros, 5);
+    cout << "El número 5 está en la posición: " << resultado << endl;
 
     // Implementar menu
     int opcion = 0;
