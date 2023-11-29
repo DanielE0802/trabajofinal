@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <cmath>
 
 using namespace std;
 
@@ -86,10 +87,22 @@ void ArbolHeap::mostrar() {
         return;
     }
 
-    cout << "Árbol Heap: ";
+    int nivelActual = 0;
+    int elementosEnNivel = 1;
+    int elementosMostrados = 0;
+
     for (const NodoHeap& nodo : heap) {
+        if (elementosMostrados == elementosEnNivel) {
+            cout << endl;
+            nivelActual++;
+            elementosEnNivel *= 2;
+            elementosMostrados = 0;
+        }
+
         cout << nodo.valor << " ";
+        elementosMostrados++;
     }
+
     cout << endl;
 }
 
