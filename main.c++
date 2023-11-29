@@ -6,24 +6,31 @@
 #include "arbolbinario.h"
 #include "ordenamiento.h"
 
+#include <clocale>
 
 using namespace std;
 
-
-int main() {
-    ArbolBinarioBusqueda arbol;
-
-    string nombreArchivo = "numeros.csv";
-    vector<int> numeros = leerCSV(nombreArchivo);
-        // Mostrar el arreglo ordenado
-    for (int num : numeros) {
-        cout << num << " ";
+void showArrayOriginal(vector<int> original) {
+    cout << "-----------------------------------" << endl;
+    cout << "Array original: ";
+    for (int i = 0; i < original.size(); i++) {
+        cout << original[i] << " ";
     }
     cout << endl;
+}
+
+
+int main() {
+        setlocale(LC_ALL, "Spanish");
+
+    ArbolBinarioBusqueda arbol;
+    string nombreArchivo = "numeros.csv";
+    vector<int> numeros = leerCSV(nombreArchivo);
+    vector<int> original = numeros;
 
     // Búsqueda binaria (por ejemplo, buscar el número 5)
-    int resultado = busquedaBinaria(numeros, 5);
-    cout << "El número 5 está en la posición: " << resultado << endl;
+    // int resultado = busquedaBinaria(numeros, 5);
+    // cout << "El número 5 está en la posición: " << resultado << endl;
 
     // Implementar menu
     int opcion = 0;
@@ -31,9 +38,11 @@ int main() {
     int valor = 0;
 
     do {
+        cout << endl;
         cout << "-----------------------------------" << endl;
         cout << "Menu" << endl;
         cout << "1. Arbol Binario" << endl;
+        wcout << L"2. métodos de ordenamiento (apartir de un csv)" << endl;
         cin >> opcion;
 
         switch (opcion) {
@@ -72,6 +81,81 @@ int main() {
                         break;
                 }
                 break;
+            case 2:
+                cout << "-----------------------------------" << endl;
+                cout << "Elija el método de ordenamiento para el archivo csv cargado (llamado 'numeros.csv'):" << endl;
+                cout << "" << endl;
+                cout << "- 1. Selection Sort" << endl;
+                cout << "- 2. Bubble Sort" << endl;
+                cout << "- 3. Insertion Sort" << endl;
+                cout << "- 4. Merge Sort" << endl;
+                cout << "- 5. Quick Sort" << endl;
+                cout << "- 6. Counting Sort" << endl;
+                cout << "- 7. Radix Sort" << endl;
+                cout << "- 8. Shell Sort" << endl;
+                cout << "- 9. Restaurar array original" << endl;
+                cout << "- 10. Salir" << endl;
+                cin >> submenu;
+                // Guardar array original
+
+                switch (submenu) {
+
+                    case 1:
+                        showArrayOriginal(original);                      
+                        selectionSort(numeros.data(), numeros.size());
+                        break;
+                    case 2:
+                        showArrayOriginal(original);                      
+                        bubbleSort(numeros.data(), numeros.size());
+                        break;
+                    case 3:
+                        showArrayOriginal(original);                      
+                        insertionSort(numeros.data(), numeros.size());
+                        break;
+                    case 4:
+                        showArrayOriginal(original);                      
+                        mergeSort(numeros.data(), 0, numeros.size() - 1);
+                        // Imprimir el array ordenado
+                        cout << "Array ordenado con Merge Sort: ";
+                        for (int i = 0; i < numeros.size(); i++) {
+                            cout << numeros[i] << " ";
+                        }
+                        cout << endl;
+                        break;
+                    case 5:
+                        showArrayOriginal(original);                      
+                        quickSort(numeros.data(), 0, numeros.size() - 1);
+                        // Imprimir el array ordenado
+                        cout << "Array ordenado con Quick Sort: ";
+                        for (int i = 0; i < numeros.size(); i++) {
+                            cout << numeros[i] << " ";
+                        }
+                        cout << endl;
+                        break;
+                    case 6:
+                        showArrayOriginal(original);                      
+                        countingSort(numeros.data(), numeros.size());
+                        break;
+                    case 7:
+                        showArrayOriginal(original);                      
+                        radixSort(numeros.data(), numeros.size());
+                        break;
+                    case 8:
+                        showArrayOriginal(original);                      
+                        shellSort(numeros.data(), numeros.size());
+                        break;
+                    case 9:
+                        numeros = original;
+                        cout << "Array restaurado a su estado original" << endl;
+                        break;
+                    case 10:
+                        break;
+                    default:
+                        cout << "Opcion no valida" << endl;
+                        break;
+                }
+                break;
+                
             default:
                 cout << "Opcion no valida" << endl;
                 break;
