@@ -1,0 +1,271 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
+#include <climits>
+#include <limits>
+using namespace std;
+
+struct Edge {
+    unsigned int src, dest, weight;
+
+    Edge(unsigned int s, unsigned int d, unsigned int w) : src(s), dest(d), weight(w) {}
+};
+
+class Graph {
+public:
+    vector<vector<pair<unsigned int, unsigned int>>> adjList;
+
+    Graph(unsigned int vertices) {
+        adjList.resize(vertices);
+    }
+
+    void addEdge(unsigned int src, unsigned int dest, unsigned int weight) {
+        adjList[src].emplace_back(dest, weight);
+        adjList[dest].emplace_back(src, weight); // for undirected graph
+    }
+
+    void representGraph() const;
+    void applyKruskal() const;
+    void applyPrim() const;
+    void applyFloydWarshall() const;
+    void applyDijkstra(unsigned int startNode) const;
+};
+
+void Graph::representGraph() const {
+    cout << "\nRepresentación del grafo:\n";
+    for (unsigned int i = 0; i < adjList.size(); ++i) {
+        cout << "Vértice " << i << ": ";
+        for (const auto& edge : adjList[i]) {
+            cout << "(" << edge.first << ", " << edge.second << ") ";
+        }
+        cout << endl;
+    }
+}
+
+bool compareEdges(const Edge& e1, const Edge& e2) {
+    return e1.weight < e2.weight;
+}
+
+int findParent(vector<int>& parent, int vertex) {
+    if (parent[vertex] == -1)
+        return vertex;
+    return findParent(parent, parent[vertex]);
+}
+
+void unionSets(vector<int>& parent, int x, int y) {
+    int rootX = findParent(parent, x);
+    int rootY = findParent(parent, y);
+    parent[rootX] = rootY;
+}
+
+void Graph::applyKruskal() const {
+    vector<Edge> allEdges;
+    for (unsigned int i = 0; i < adjList.size(); ++i) {
+        for (const auto& edge : adjList[i]) {
+            allEdges.emplace_back(i, edge.first, edge.second);
+        }
+    }
+
+    sort(allEdges.begin(), allEdges.end(), compareEdges);
+
+    vector<int> parent(adjList.size(), -1);
+    vector<Edge> result;
+
+    for (const auto& edge : allEdges) {
+        int rootSrc = findParent(parent, edge.src);
+        int rootDest = findParent(parent, edge.dest);
+
+        if (rootSrc != rootDest) {
+            result.push_back(edge);
+            unionSets(parent, rootSrc, rootDest);
+        }
+    }
+
+    cout << "\nÁrbol de expansión mínima (Kruskal):\n";
+    for (const auto& edge : result) {
+        cout << "(" << edge.src << ", " << edge.dest << ") peso: " << edge.weight << endl;
+    }
+}
+
+void Graph::applyPrim() const {
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    vector<bool> inMST(adjList.size(), false);
+    vector<int> key(adjList.size(), INT_MAX);
+    vector<int> parent(adjList.size(), -1);
+
+    int startNode = 0; // Puedes cambiar esto dependiendo del nodo de inicio
+
+    pq.push({0, startNode});
+    key[startNode] = 0;
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+
+        inMST[u] = true;
+
+        for (const auto& edge : adjList[u]) {
+            int v = edge.first;
+            int weight = edge.second;
+
+            if (!inMST[v] && weight < key[v]) {
+                key[v] = weight;
+                pq.push({key[v], v});
+                parent[v] = u;
+            }
+        }
+    }
+
+    cout << "\nÁrbol de expansión mínima (Prim):\n";
+    for (unsigned int i = 1; i < adjList.size(); ++i) {
+        cout << "(" << parent[i] << ", " << i << ") peso: " << key[i] << endl;
+    }
+}
+
+void Graph::applyFloydWarshall() const {
+    vector<vector<int>> dist(adjList.size(), vector<int>(adjList.size(), INT_MAX));
+
+    for (unsigned int i = 0; i < adjList.size(); ++i) {
+        dist[i][i] = 0;
+        for (const auto& edge : adjList[i]) {
+            dist[i][edge.first] = edge.second;
+        }
+    }
+
+    for (unsigned int k = 0; k < adjList.size(); ++k) {
+        for (unsigned int i = 0; i < adjList.size(); ++i) {
+            for (unsigned int j = 0; j < adjList.size(); ++j) {
+                if (dist[i][k] != INT_MAX && dist[k][j] != INT_MAX && dist[i][k] + dist[k][j] < dist[i][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                }
+            }
+        }
+    }
+
+    cout << "\nMatriz de distancias mínimas (Floyd-Warshall):\n";
+    for (unsigned int i = 0; i < adjList.size(); ++i) {
+        for (unsigned int j = 0; j < adjList.size(); ++j) {
+            if (dist[i][j] == INT_MAX) {
+                cout << "INF ";
+            } else {
+                cout << dist[i][j] << " ";
+            }
+        }
+        cout << endl;
+    }
+}
+
+void Graph::applyDijkstra(unsigned int startNode) const {
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    vector<int> dist(adjList.size(), INT_MAX);
+
+    pq.push({0, startNode});
+    dist[startNode] = 0;
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+
+        for (const auto& edge : adjList[u]) {
+            int v = edge.first;
+            int weight = edge.second;
+
+            if (dist[u] != INT_MAX && dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    cout << "\nDistancias más cortas desde el nodo " << startNode << " (Dijkstra):\n";
+    for (unsigned int i = 0; i < adjList.size(); ++i) {
+        cout << "Nodo " << i << ": " << dist[i] << endl;
+    }
+}
+
+int main() {
+    unsigned int vertices, edges;
+    cout << "Ingrese el número de vértices del grafo: ";
+    cin >> vertices;
+    cout << "Ingrese el número de aristas del grafo: ";
+    cin >> edges;
+
+    Graph graph(vertices);
+
+    cout << "Por favor, ingrese las aristas una por una. Para cada arista, proporcione el origen, destino y peso.\n";
+
+    for (unsigned int i = 0; i < edges; ++i) {
+        unsigned int src, dest, weight;
+
+        do {
+            cout << "Arista " << i + 1 << " (origen): ";
+            while (!(cin >> src)) {
+                cout << "Error: Ingrese un valor numérico entero positivo.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+
+            cout << "Arista " << i + 1 << " (destino): ";
+            while (!(cin >> dest)) {
+                cout << "Error: Ingrese un valor numérico entero positivo.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+
+            cout << "Arista " << i + 1 << " (peso): ";
+            while (!(cin >> weight)) {
+                cout << "Error: Ingrese un valor numérico entero positivo.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+
+            if (src >= vertices || dest >= vertices) {
+                cout << "Error: Los valores de origen y destino deben estar dentro del rango de vértices.\n";
+            }
+        } while (src >= vertices || dest >= vertices);
+
+        graph.addEdge(src, dest, weight);
+    }
+
+    int option;
+    do {
+        cout << "\n1. Representar grafo\n";
+        cout << "2. Aplicar Kruskal\n";
+        cout << "3. Aplicar Prim\n";
+        cout << "4. Aplicar Floyd Warshall\n";
+        cout << "5. Aplicar Dijkstra\n";
+        cout << "0. Salir\n";
+        cout << "Seleccione una opción: ";
+        cin >> option;
+
+        switch (option) {
+            case 1:
+                graph.representGraph();
+                break;
+            case 2:
+                graph.applyKruskal();
+                break;
+            case 3:
+                graph.applyPrim();
+                break;
+            case 4:
+                graph.applyFloydWarshall();
+                break;
+            case 5:
+                unsigned int startNode;
+                cout << "Ingrese el nodo de inicio para Dijkstra: ";
+                cin >> startNode;
+                graph.applyDijkstra(startNode);
+                break;
+            case 0:
+                cout << "Saliendo del programa.\n";
+                break;
+            default:
+                cout << "Opción no válida. Inténtalo de nuevo.\n";
+        }
+
+    } while (option != 0);
+
+    return 0;
+}
