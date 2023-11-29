@@ -12,7 +12,6 @@ struct TreeNode {
     TreeNode(int val) : data(val), left(nullptr), right(nullptr) {}
 };
 
-// Función para insertar un nodo en un árbol de búsqueda binaria
 TreeNode* insertNode(TreeNode* root, int value) {
     if (root == nullptr) {
         return new TreeNode(value);
@@ -27,46 +26,61 @@ TreeNode* insertNode(TreeNode* root, int value) {
     return root;
 }
 
-// Función para recorrer el árbol en inorden
 void inOrderTraversal(TreeNode* root, vector<int>& result) {
     if (root != nullptr) {
         inOrderTraversal(root->left, result);
-        cout << root->data << " ";
         result.push_back(root->data);
         inOrderTraversal(root->right, result);
     }
 }
 
-// Función para recorrer el árbol en preorden
 void preOrderTraversal(TreeNode* root, vector<int>& result) {
     if (root != nullptr) {
-        cout << root->data << " ";
         result.push_back(root->data);
         preOrderTraversal(root->left, result);
         preOrderTraversal(root->right, result);
     }
 }
 
-// Función para recorrer el árbol en posorden
 void posOrderTraversal(TreeNode* root, vector<int>& result) {
     if (root != nullptr) {
         posOrderTraversal(root->left, result);
         posOrderTraversal(root->right, result);
-        cout << root->data << " ";
         result.push_back(root->data);
     }
 }
 
-// Función para mostrar el árbol de manera horizontal
-void printTree(TreeNode* root, int indent = 0) {
-    if (root != nullptr) {
-        printTree(root->right, indent + 4);
-        cout << setw(indent) << root->data << endl;
-        printTree(root->left, indent + 4);
+void printTreeHelper(TreeNode* root, int espacio, int espaciadoEntreNodos) {
+    const int anchura = 5;
+
+    if (root == nullptr) {
+        return;
     }
+
+    espacio += espaciadoEntreNodos;
+
+    printTreeHelper(root->right, espacio, espaciadoEntreNodos);
+
+    cout << endl;
+    for (int i = espaciadoEntreNodos; i < espacio; i++) {
+        cout << " ";
+    }
+    cout << setw(anchura) << root->data;
+
+    printTreeHelper(root->left, espacio, espaciadoEntreNodos);
 }
 
-// Función para liberar la memoria del árbol
+// Función para mostrar el árbol de manera horizontal
+void printTree(TreeNode* root) {
+    if (root == nullptr) {
+        cout << "No hay árbol para mostrar." << endl;
+        return;
+    }
+
+    printTreeHelper(root, 0, 4); // Ajusta el valor 4 según sea necesario
+    cout << endl;
+}
+
 void deleteTree(TreeNode* root) {
     if (root != nullptr) {
         deleteTree(root->left);
@@ -75,7 +89,6 @@ void deleteTree(TreeNode* root) {
     }
 }
 
-// Función para construir un árbol a partir de los recorridos Inorden y Preorden
 TreeNode* buildTreeFromInPre(const vector<int>& inorder, const vector<int>& preorder, int inStart, int inEnd, int& preIndex) {
     if (inStart > inEnd) {
         return nullptr;
@@ -97,7 +110,6 @@ TreeNode* buildTreeFromInPre(const vector<int>& inorder, const vector<int>& preo
     return node;
 }
 
-// Función para construir un árbol a partir de los recorridos Inorden y Posorden
 TreeNode* buildTreeFromInPos(const vector<int>& inorder, const vector<int>& posorder, int inStart, int inEnd, int& posIndex) {
     if (inStart > inEnd) {
         return nullptr;
@@ -191,7 +203,11 @@ int main() {
                 if (root == nullptr) {
                     cout << "Árbol vacío. Ingrese el árbol primero.\n";
                 } else {
-                    inOrderTraversal(root, inorder);
+                    vector<int> result;
+                    inOrderTraversal(root, result);
+                    for (int val : result) {
+                        cout << val << " ";
+                    }
                     cout << endl;
                 }
                 break;
@@ -201,7 +217,11 @@ int main() {
                 if (root == nullptr) {
                     cout << "Árbol vacío. Ingrese el árbol primero.\n";
                 } else {
-                    preOrderTraversal(root, preorder);
+                    vector<int> result;
+                    preOrderTraversal(root, result);
+                    for (int val : result) {
+                        cout << val << " ";
+                    }
                     cout << endl;
                 }
                 break;
@@ -211,19 +231,18 @@ int main() {
                 if (root == nullptr) {
                     cout << "Árbol vacío. Ingrese el árbol primero.\n";
                 } else {
-                    posOrderTraversal(root, posorder);
+                    vector<int> result;
+                    posOrderTraversal(root, result);
+                    for (int val : result) {
+                        cout << val << " ";
+                    }
                     cout << endl;
                 }
                 break;
             }
             case 7: {
                 cout << "Mostrando árbol:\n";
-                if (root == nullptr) {
-                    cout << "Árbol vacío. Ingrese el árbol primero.\n";
-                } else {
-                    printTree(root);
-                    cout << endl;
-                }
+                printTree(root);
                 break;
             }
             case 8: {
@@ -243,6 +262,5 @@ int main() {
 
     return 0;
 }
-
 
 
