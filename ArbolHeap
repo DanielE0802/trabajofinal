@@ -1,0 +1,213 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+
+using namespace std;
+
+class NodoHeap {
+public:
+    int valor;
+    NodoHeap(int v) : valor(v) {}
+};
+
+class ArbolHeap {
+private:
+    vector<NodoHeap> heap;
+    bool arbolConstruido;
+
+public:
+    ArbolHeap() : arbolConstruido(false) {}
+
+    void insertar(int valor);
+    void eliminar();
+    bool buscar(int valor);
+    void mostrar();
+    void construirDesdeArreglo(vector<int>& arr);
+    bool esArbolVacio();
+
+private:
+    void heapify(int indice);
+};
+
+bool ArbolHeap::esArbolVacio() {
+    return heap.empty();
+}
+
+void ArbolHeap::insertar(int valor) {
+    if (!arbolConstruido) {
+        cout << "Primero debe construir el árbol desde un arreglo." << endl;
+        return;
+    }
+
+    NodoHeap nuevoNodo(valor);
+    heap.push_back(nuevoNodo);
+
+    int indice = heap.size() - 1;
+    while (indice > 0) {
+        int indicePadre = (indice - 1) / 2;
+        if (heap[indice].valor > heap[indicePadre].valor) {
+            swap(heap[indice], heap[indicePadre]);
+            indice = indicePadre;
+        } else {
+            break;
+        }
+    }
+}
+
+void ArbolHeap::eliminar() {
+    if (esArbolVacio()) {
+        cout << "El árbol está vacío." << endl;
+        return;
+    }
+
+    swap(heap[0], heap.back());
+    heap.pop_back();
+
+    heapify(0);
+}
+
+bool ArbolHeap::buscar(int valor) {
+    if (esArbolVacio()) {
+        cout << "El árbol está vacío." << endl;
+        return false;
+    }
+
+    for (const NodoHeap& nodo : heap) {
+        if (nodo.valor == valor) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ArbolHeap::mostrar() {
+    if (esArbolVacio()) {
+        cout << "El árbol está vacío." << endl;
+        return;
+    }
+
+    cout << "Árbol Heap: ";
+    for (const NodoHeap& nodo : heap) {
+        cout << nodo.valor << " ";
+    }
+    cout << endl;
+}
+
+void ArbolHeap::construirDesdeArreglo(vector<int>& arr) {
+    heap.clear();
+    for (int valor : arr) {
+        NodoHeap nuevoNodo(valor);
+        heap.push_back(nuevoNodo);
+    }
+
+    for (int i = (heap.size() / 2) - 1; i >= 0; --i) {
+        heapify(i);
+    }
+
+    arbolConstruido = true;
+}
+
+void ArbolHeap::heapify(int indice) {
+    int tamano = heap.size();
+    int indiceMaximo = indice;
+    int hijoIzquierdo = 2 * indice + 1;
+    int hijoDerecho = 2 * indice + 2;
+
+    if (hijoIzquierdo < tamano && heap[hijoIzquierdo].valor > heap[indiceMaximo].valor) {
+        indiceMaximo = hijoIzquierdo;
+    }
+
+    if (hijoDerecho < tamano && heap[hijoDerecho].valor > heap[indiceMaximo].valor) {
+        indiceMaximo = hijoDerecho;
+    }
+
+    if (indice != indiceMaximo) {
+        swap(heap[indice], heap[indiceMaximo]);
+        heapify(indiceMaximo);
+    }
+}
+
+int obtenerEntero() {
+    int valor;
+    while (true) {
+        cin >> valor;
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Por favor, ingrese un número entero válido: ";
+        } else {
+            break;
+        }
+    }
+    return valor;
+}
+
+int main() {
+    ArbolHeap heap;
+
+    int opcion;
+    do {
+        cout << "\nMenú:\n";
+        cout << "1. Construir desde arreglo\n";
+        cout << "2. Insertar\n";
+        cout << "3. Eliminar\n";
+        cout << "4. Buscar\n";
+        cout << "5. Mostrar\n";
+        cout << "0. Salir\n";
+        cout << "Seleccione una opción: ";
+        opcion = obtenerEntero();
+
+        switch (opcion) {
+            case 1: {
+                vector<int> arr;
+                int n;
+                cout << "Ingrese la cantidad de nodos en el arreglo: ";
+                n = obtenerEntero();
+                cout << "Ingrese los elementos del arreglo:\n";
+                for (int i = 0; i < n; ++i) {
+                    cout << "Nodo " << i + 1 << ": ";
+                    arr.push_back(obtenerEntero());
+                }
+                heap.construirDesdeArreglo(arr);
+                break;
+            }
+            case 2: {
+                if (heap.esArbolVacio()) {
+                    cout << "Primero debe construir el árbol desde un arreglo." << endl;
+                } else {
+                    cout << "Ingrese el valor a insertar: ";
+                    int valor = obtenerEntero();
+                    heap.insertar(valor);
+                }
+                break;
+            }
+            case 3:
+                heap.eliminar();
+                break;
+            case 4: {
+                if (heap.esArbolVacio()) {
+                    cout << "Primero debe construir el árbol desde un arreglo." << endl;
+                } else {
+                    cout << "Ingrese el valor a buscar: ";
+                    int valor = obtenerEntero();
+                    if (heap.buscar(valor)) {
+                        cout << "El valor está en el árbol.\n";
+                    } else {
+                        cout << "El valor no está en el árbol.\n";
+                    }
+                }
+                break;
+            }
+            case 5:
+                heap.mostrar();
+                break;
+            case 0:
+                cout << "Saliendo del programa.\n";
+                break;
+            default:
+                cout << "Opción no válida. Intente de nuevo.\n";
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
