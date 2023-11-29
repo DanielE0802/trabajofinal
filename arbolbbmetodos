@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <iomanip>
 #include <limits>
 
@@ -28,74 +27,33 @@ TreeNode* insertNode(TreeNode* root, int value) {
     return root;
 }
 
-// Función para construir un árbol desde recorridos en inorden y preorden
-TreeNode* buildTreeFromInPre(vector<int>& inorder, vector<int>& preorder, int inStart, int inEnd, int& preIndex) {
-    if (inStart > inEnd) {
-        return nullptr;
-    }
-
-    TreeNode* root = new TreeNode(preorder[preIndex++]);
-
-    int inIndex = 0;
-    for (int i = inStart; i <= inEnd; ++i) {
-        if (inorder[i] == root->data) {
-            inIndex = i;
-            break;
-        }
-    }
-
-    root->left = buildTreeFromInPre(inorder, preorder, inStart, inIndex - 1, preIndex);
-    root->right = buildTreeFromInPre(inorder, preorder, inIndex + 1, inEnd, preIndex);
-
-    return root;
-}
-
-// Función para construir un árbol desde recorridos en inorden y posorden
-TreeNode* buildTreeFromInPos(vector<int>& inorder, vector<int>& posorder, int inStart, int inEnd, int& posIndex) {
-    if (inStart > inEnd) {
-        return nullptr;
-    }
-
-    TreeNode* root = new TreeNode(posorder[posIndex--]);
-
-    int inIndex = 0;
-    for (int i = inStart; i <= inEnd; ++i) {
-        if (inorder[i] == root->data) {
-            inIndex = i;
-            break;
-        }
-    }
-
-    root->right = buildTreeFromInPos(inorder, posorder, inIndex + 1, inEnd, posIndex);
-    root->left = buildTreeFromInPos(inorder, posorder, inStart, inIndex - 1, posIndex);
-
-    return root;
-}
-
 // Función para recorrer el árbol en inorden
-void inOrderTraversal(TreeNode* root) {
+void inOrderTraversal(TreeNode* root, vector<int>& result) {
     if (root != nullptr) {
-        inOrderTraversal(root->left);
+        inOrderTraversal(root->left, result);
         cout << root->data << " ";
-        inOrderTraversal(root->right);
+        result.push_back(root->data);
+        inOrderTraversal(root->right, result);
     }
 }
 
 // Función para recorrer el árbol en preorden
-void preOrderTraversal(TreeNode* root) {
+void preOrderTraversal(TreeNode* root, vector<int>& result) {
     if (root != nullptr) {
         cout << root->data << " ";
-        preOrderTraversal(root->left);
-        preOrderTraversal(root->right);
+        result.push_back(root->data);
+        preOrderTraversal(root->left, result);
+        preOrderTraversal(root->right, result);
     }
 }
 
 // Función para recorrer el árbol en posorden
-void posOrderTraversal(TreeNode* root) {
+void posOrderTraversal(TreeNode* root, vector<int>& result) {
     if (root != nullptr) {
-        posOrderTraversal(root->left);
-        posOrderTraversal(root->right);
+        posOrderTraversal(root->left, result);
+        posOrderTraversal(root->right, result);
         cout << root->data << " ";
+        result.push_back(root->data);
     }
 }
 
@@ -108,6 +66,59 @@ void printTree(TreeNode* root, int indent = 0) {
     }
 }
 
+// Función para liberar la memoria del árbol
+void deleteTree(TreeNode* root) {
+    if (root != nullptr) {
+        deleteTree(root->left);
+        deleteTree(root->right);
+        delete root;
+    }
+}
+
+// Función para construir un árbol a partir de los recorridos Inorden y Preorden
+TreeNode* buildTreeFromInPre(const vector<int>& inorder, const vector<int>& preorder, int inStart, int inEnd, int& preIndex) {
+    if (inStart > inEnd) {
+        return nullptr;
+    }
+
+    TreeNode* node = new TreeNode(preorder[preIndex++]);
+
+    int inIndex;
+    for (int i = inStart; i <= inEnd; ++i) {
+        if (inorder[i] == node->data) {
+            inIndex = i;
+            break;
+        }
+    }
+
+    node->left = buildTreeFromInPre(inorder, preorder, inStart, inIndex - 1, preIndex);
+    node->right = buildTreeFromInPre(inorder, preorder, inIndex + 1, inEnd, preIndex);
+
+    return node;
+}
+
+// Función para construir un árbol a partir de los recorridos Inorden y Posorden
+TreeNode* buildTreeFromInPos(const vector<int>& inorder, const vector<int>& posorder, int inStart, int inEnd, int& posIndex) {
+    if (inStart > inEnd) {
+        return nullptr;
+    }
+
+    TreeNode* node = new TreeNode(posorder[posIndex--]);
+
+    int inIndex;
+    for (int i = inStart; i <= inEnd; ++i) {
+        if (inorder[i] == node->data) {
+            inIndex = i;
+            break;
+        }
+    }
+
+    node->right = buildTreeFromInPos(inorder, posorder, inIndex + 1, inEnd, posIndex);
+    node->left = buildTreeFromInPos(inorder, posorder, inStart, inIndex - 1, posIndex);
+
+    return node;
+}
+
 int main() {
     TreeNode* root = nullptr;
     vector<int> inorder, preorder, posorder;
@@ -117,80 +128,121 @@ int main() {
     do {
         cout << "\nElija una opción:\n";
         cout << "1. Ingresar/Reingresar árbol binario de búsqueda\n";
-        cout << "2. Construir ABB desde Inorden-Preorden\n";
-        cout << "3. Construir ABB desde Inorden-Posorden\n";
+        cout << "2. Mostrar ABB desde Inorden-Preorden\n";
+        cout << "3. Mostrar ABB desde Inorden-Posorden\n";
         cout << "4. Aplicar recorrido Inorden\n";
         cout << "5. Aplicar recorrido Preorden\n";
         cout << "6. Aplicar recorrido Posorden\n";
         cout << "7. Mostrar árbol\n";
         cout << "8. Salir\n";
         cout << "> ";
+
         cin >> choice;
 
         switch (choice) {
             case 1: {
-                int n;
+                int numNodes, val;
                 cout << "Ingrese el número de nodos en el árbol binario de búsqueda: ";
-                cin >> n;
-
+                cin >> numNodes;
                 cout << "Ingrese los valores del árbol binario de búsqueda:\n";
-                for (int i = 0; i < n; ++i) {
-                    int val;
+                for (int i = 0; i < numNodes; ++i) {
                     cout << i + 1 << ": ";
                     cin >> val;
                     root = insertNode(root, val);
                 }
 
+                // Almacenar recorridos
+                inorder.clear();
+                preorder.clear();
+                posorder.clear();
+                inOrderTraversal(root, inorder);
+                preOrderTraversal(root, preorder);
+                posOrderTraversal(root, posorder);
+
                 cout << "Árbol ingresado exitosamente.\n";
                 break;
             }
             case 2: {
-                int preIndex = 0;
-                root = buildTreeFromInPre(inorder, preorder, 0, inorder.size() - 1, preIndex);
-                cout << "Árbol construido exitosamente.\n";
+                cout << "Mostrando árbol desde Inorden-Preorden:\n";
+                if (inorder.empty() || preorder.empty()) {
+                    cout << "Recorridos Inorden y Preorden no disponibles. Ingrese el árbol primero.\n";
+                } else {
+                    int preIndex = 0;
+                    root = buildTreeFromInPre(inorder, preorder, 0, inorder.size() - 1, preIndex);
+                    printTree(root);
+                    cout << "Árbol construido exitosamente.\n";
+                }
                 break;
             }
             case 3: {
-                int posIndex = posorder.size() - 1;
-                root = buildTreeFromInPos(inorder, posorder, 0, inorder.size() - 1, posIndex);
-                cout << "Árbol construido exitosamente.\n";
+                cout << "Mostrando árbol desde Inorden-Posorden:\n";
+                if (inorder.empty() || posorder.empty()) {
+                    cout << "Recorridos Inorden y Posorden no disponibles. Ingrese el árbol primero.\n";
+                } else {
+                    int posIndex = posorder.size() - 1;
+                    root = buildTreeFromInPos(inorder, posorder, 0, inorder.size() - 1, posIndex);
+                    printTree(root);
+                    cout << "Árbol construido exitosamente.\n";
+                }
                 break;
             }
-            case 4:
+            case 4: {
                 cout << "Recorrido Inorden:\n";
-                inOrderTraversal(root);
-                cout << endl;
+                if (root == nullptr) {
+                    cout << "Árbol vacío. Ingrese el árbol primero.\n";
+                } else {
+                    inOrderTraversal(root, inorder);
+                    cout << endl;
+                }
                 break;
-            case 5:
+            }
+            case 5: {
                 cout << "Recorrido Preorden:\n";
-                preOrderTraversal(root);
-                cout << endl;
+                if (root == nullptr) {
+                    cout << "Árbol vacío. Ingrese el árbol primero.\n";
+                } else {
+                    preOrderTraversal(root, preorder);
+                    cout << endl;
+                }
                 break;
-            case 6:
+            }
+            case 6: {
                 cout << "Recorrido Posorden:\n";
-                posOrderTraversal(root);
-                cout << endl;
+                if (root == nullptr) {
+                    cout << "Árbol vacío. Ingrese el árbol primero.\n";
+                } else {
+                    posOrderTraversal(root, posorder);
+                    cout << endl;
+                }
                 break;
-            case 7:
+            }
+            case 7: {
                 cout << "Mostrando árbol:\n";
                 if (root == nullptr) {
                     cout << "Árbol vacío. Ingrese el árbol primero.\n";
                 } else {
                     printTree(root);
+                    cout << endl;
                 }
                 break;
-            case 8:
-                cout << "Saliendo del programa.\n";
+            }
+            case 8: {
+                // Liberar memoria del árbol antes de salir
+                deleteTree(root);
                 break;
+            }
             default:
                 cout << "Opción no válida. Inténtelo de nuevo.\n";
+                // Limpiar el buffer de entrada
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
         }
-
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Presione ENTER para continuar...\n";
-        cin.get();
 
     } while (choice != 8);
 
     return 0;
 }
+
+
+
