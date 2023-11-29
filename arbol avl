@@ -1,0 +1,228 @@
+#include <iostream>
+#include <iomanip>
+#include <limits>
+#include <vector>
+
+using namespace std;
+
+class NodoAVL {
+public:
+    int valor;
+    NodoAVL* izquierdo;
+    NodoAVL* derecho;
+    int altura;
+
+    NodoAVL(int val) : valor(val), izquierdo(nullptr), derecho(nullptr), altura(1) {}
+};
+
+class ArbolAVL {
+private:
+    NodoAVL* raiz;
+
+    int altura(NodoAVL* nodo) {
+        if (nodo == nullptr)
+            return 0;
+        return nodo->altura;
+    }
+
+    int balance(NodoAVL* nodo) {
+        if (nodo == nullptr)
+            return 0;
+        return altura(nodo->izquierdo) - altura(nodo->derecho);
+    }
+
+    NodoAVL* rotarDerecha(NodoAVL* y) {
+        NodoAVL* x = y->izquierdo;
+        NodoAVL* T2 = x->derecho;
+
+        // Realizar rotación
+        x->derecho = y;
+        y->izquierdo = T2;
+
+        // Actualizar alturas
+        y->altura = max(altura(y->izquierdo), altura(y->derecho)) + 1;
+        x->altura = max(altura(x->izquierdo), altura(x->derecho)) + 1;
+
+        return x;
+    }
+
+    NodoAVL* rotarIzquierda(NodoAVL* x) {
+        NodoAVL* y = x->derecho;
+        NodoAVL* T2 = y->izquierdo;
+
+        // Realizar rotación
+        y->izquierdo = x;
+        x->derecho = T2;
+
+        // Actualizar alturas
+        x->altura = max(altura(x->izquierdo), altura(x->derecho)) + 1;
+        y->altura = max(altura(y->izquierdo), altura(y->derecho)) + 1;
+
+        return y;
+    }
+
+    NodoAVL* insertar(NodoAVL* nodo, int valor) {
+        // Implementar la inserción según las reglas de AVL
+        if (nodo == nullptr)
+            return new NodoAVL(valor);
+
+        if (valor < nodo->valor)
+            nodo->izquierdo = insertar(nodo->izquierdo, valor);
+        else if (valor > nodo->valor)
+            nodo->derecho = insertar(nodo->derecho, valor);
+        else
+            return nodo; // No se permiten duplicados
+
+        // Actualizar la altura del nodo actual
+        nodo->altura = 1 + max(altura(nodo->izquierdo), altura(nodo->derecho));
+
+        // Balancear el árbol después de la inserción
+        return balancear(nodo);
+    }
+
+    NodoAVL* balancear(NodoAVL* nodo) {
+        // Implementar el equilibrio del árbol AVL
+        int factor = balance(nodo);
+
+        // Casos de desequilibrio
+
+        // Izquierda Izquierda
+        if (factor > 1 && balance(nodo->izquierdo) >= 0)
+            return rotarDerecha(nodo);
+
+        // Derecha Derecha
+        if (factor < -1 && balance(nodo->derecho) <= 0)
+            return rotarIzquierda(nodo);
+
+        // Izquierda Derecha
+        if (factor > 1 && balance(nodo->izquierdo) < 0) {
+            nodo->izquierdo = rotarIzquierda(nodo->izquierdo);
+            return rotarDerecha(nodo);
+        }
+
+        // Derecha Izquierda
+        if (factor < -1 && balance(nodo->derecho) > 0) {
+            nodo->derecho = rotarDerecha(nodo->derecho);
+            return rotarIzquierda(nodo);
+        }
+
+        return nodo;
+    }
+
+    bool buscar(NodoAVL* nodo, int valor) {
+        // Implementar la búsqueda en el árbol AVL
+        if (nodo == nullptr)
+            return false;
+
+        if (valor < nodo->valor)
+            return buscar(nodo->izquierdo, valor);
+        else if (valor > nodo->valor)
+            return buscar(nodo->derecho, valor);
+        else
+            return true; // Encontrado
+    }
+
+    void mostrar(NodoAVL* nodo, int indent = 0) {
+        // Implementar la visualización del árbol AVL
+        if (nodo != nullptr) {
+            if (nodo->derecho) mostrar(nodo->derecho, indent + 4);
+            if (indent > 0) cout << setw(indent) << " ";
+            cout << nodo->valor << endl;
+            if (nodo->izquierdo) mostrar(nodo->izquierdo, indent + 4);
+        }
+    }
+
+public:
+    ArbolAVL() : raiz(nullptr) {}
+
+    void construirDesdeArreglo() {
+        int n;
+        cout << "Ingrese la cantidad de nodos en el arreglo: ";
+        while (!(cin >> n) || n <= 0) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Entrada inválida. Inténtalo de nuevo: ";
+        }
+
+        vector<int> elementos(n);
+        cout << "Ingrese los elementos del arreglo:\n";
+        for (int i = 0; i < n; ++i) {
+            cout << "Nodo " << i + 1 << ": ";
+            while (!(cin >> elementos[i])) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Entrada inválida. Inténtalo de nuevo: ";
+            }
+        }
+
+        // Construir el árbol desde el arreglo
+        for (int i = 0; i < n; ++i)
+            raiz = insertar(raiz, elementos[i]);
+    }
+
+    void insertar(int valor) {
+        raiz = insertar(raiz, valor);
+    }
+
+    bool buscar(int valor) {
+        return buscar(raiz, valor);
+    }
+
+    void mostrar() {
+        mostrar(raiz);
+        cout << endl;
+    }
+};
+
+int main() {
+    ArbolAVL arbolAVL;
+
+    int opcion;
+
+    do {
+        cout << "\nMenú:\n";
+        cout << "1. Construir desde arreglo\n";
+        cout << "2. Insertar\n";
+        cout << "3. Eliminar\n";
+        cout << "4. Buscar\n";
+        cout << "5. Mostrar\n";
+        cout << "0. Salir\n";
+        cout << "Seleccione una opción: ";
+
+        while (!(cin >> opcion) || opcion < 0 || opcion > 5) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Entrada inválida. Inténtalo de nuevo: ";
+        }
+
+        switch (opcion) {
+            case 1:
+                arbolAVL.construirDesdeArreglo();
+                break;
+            case 2:
+                int valor;
+                cout << "Ingrese el valor a insertar: ";
+                while (!(cin >> valor)) {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Entrada inválida. Inténtalo de nuevo: ";
+                }
+                arbolAVL.insertar(valor);
+                break;
+            case 3:
+                // Implementar eliminación
+                break;
+            case 4:
+                // Implementar búsqueda
+                break;
+            case 5:
+                arbolAVL.mostrar();
+                break;
+            case 0:
+                cout << "Saliendo del programa." << endl;
+                break;
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
